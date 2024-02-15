@@ -1,0 +1,18 @@
+$SMSSiteCode = "PR1"
+Import-Module ((Split-Path $env:SMS_ADMIN_UI_PATH)+"\ConfigurationManager.psd1")
+Set-Location "$($SMSSiteCode):"
+
+
+Import-Csv C:\temp\Boundaries_v2.csv | ForEach-Object {
+    
+    $IpRange = $_.StartIP + "-" + $_.EndIP
+    Write-Host -NoNewline "Creating Boundary: " $_.Description  " Range:" $IpRange -ForegroundColor Yellow
+    New-CMBoundary -Type IPRange -Name $_.description  -Value $IpRange | Out-Null
+    Start-Sleep 2
+    Write-Host " - Sucess!" -ForegroundColor Green
+
+    Write-Host -NoNewline "Including Boundary: " $_.Description " Into BoundaryGroup: " $_.BoundaryGroup -ForegroundColor Yellow
+    Add-CMBoundaryToGroup -BoundaryName $_.Description -BoundaryGroupName $_.BoundaryGroup | Out-Null
+    Start-Sleep 2
+    Write-Host " - Sucess!" -ForegroundColor Green
+}
