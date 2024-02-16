@@ -5,14 +5,39 @@ Set-Location "$($SMSSiteCode):"
 
 Import-Csv C:\temp\Boundaries_v2.csv | ForEach-Object {
     
-    $IpRange = $_.StartIP + "-" + $_.EndIP
-    Write-Host -NoNewline "Creating Boundary: " $_.Description  " Range:" $IpRange -ForegroundColor Yellow
-    New-CMBoundary -Type IPRange -Name $_.description  -Value $IpRange | Out-Null
-    Start-Sleep 2
-    Write-Host " - Sucess!" -ForegroundColor Green
+    $CheckBoundary = (Get-CMBoundary -BoundaryName $_.Description).DisplayName
+    #Write-Host $CheckBoundary
 
-    Write-Host -NoNewline "Including Boundary: " $_.Description " Into BoundaryGroup: " $_.BoundaryGroup -ForegroundColor Yellow
-    Add-CMBoundaryToGroup -BoundaryName $_.Description -BoundaryGroupName $_.BoundaryGroup | Out-Null
-    Start-Sleep 2
-    Write-Host " - Sucess!" -ForegroundColor Green
+    if ($CheckBoundary -eq $_.description) {
+        Write-Host "Boundary" $_.description "Already Exist" -ForegroundColor Yellow
+
+        Write-Host "Checking If" $_.description "is already in the Boundary Group: " $_.BoundaryGroup
+        $CheckBdGroup = Get-CMBoundary -BoundaryGroupName $_.BoundaryGroup
+        $Boundary = $_.description
+        $BoundaryExists = $CheckBdGroup | Where-Object { $_.DisplayName -eq $Boundary }
+        #Write-Host $BoundaryExists
+        If ($BoundaryExists -ne $null){
+            Write-Host "Boundary" $_.description "Already in Boundary Group" $_.BoundaryGroup
+        }Else{
+            Write-Host "Boundary" $_.description "is not in Boundary Group" $_.BoundaryGroup  -ForegroundColor Red -BackgroundColor Black
+            Write-Host -NoNewline "Including Boundary: " $_.Description " Into BoundaryGroup: " $_.BoundaryGroup -ForegroundColor Cyan
+            Add-CMBoundaryToGroup -BoundaryName $_.Description -BoundaryGroupName $_.BoundaryGroup | Out-Null
+            Start-Sleep 2
+            Write-Host " - Sucess!" -ForegroundColor Green
+            }
+        
+        
+    }else {
+        
+        $IpRange = $_.StartIP + "-" + $_.EndIP
+        Write-Host -NoNewline "Creating Boundary: " $_.Description  " Range:" $IpRange -ForegroundColor Cyan
+        New-CMBoundary -Type IPRange -Name $_.description  -Value $IpRange | Out-Null
+        Start-Sleep 2
+        Write-Host " - Sucess!" -ForegroundColor Green
+
+        Write-Host -NoNewline "Including Boundary: " $_.Description " Into BoundaryGroup: " $_.BoundaryGroup -ForegroundColor Cyan
+        Add-CMBoundaryToGroup -BoundaryName $_.Description -BoundaryGroupName $_.BoundaryGroup | Out-Null
+        Start-Sleep 2
+        Write-Host " - Sucess!" -ForegroundColor Green
+     }
 }
