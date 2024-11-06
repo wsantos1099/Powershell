@@ -1,0 +1,14 @@
+SELECT 
+CollectionID,
+CollectionName,
+CASE 
+        WHEN RefreshType = 4 THEN 'Incremental Only'
+        WHEN RefreshType = 6 THEN 'Incremental + Full'
+        ELSE 'Other'
+END AS RefreshType
+FROM v_Collections 
+WHERE 
+(RefreshType = 6
+or RefreshType = 4)
+and isbuiltin = 0 
+order by CollectionName 
